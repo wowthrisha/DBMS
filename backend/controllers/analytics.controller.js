@@ -16,7 +16,7 @@ export const getAnalyticsData = async () => {
 		},
 	]);
 
-	const { totalSales, totalRevenue } = salesData[0] || { totalSales: 0, totalRevenue: 0 };
+	const { totalSales, totalRevenue } = salesData[0] || 1{ totalSales: 0, totalRevenue: 0 };
 
 	return {
 		users: totalUsers,
