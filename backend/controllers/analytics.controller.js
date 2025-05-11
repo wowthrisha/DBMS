@@ -3,43 +3,77 @@ import Product from "../models/product.model.js";
 import User from "../models/user.model.js";
 
 export const getAnalyticsData = async () => {
-	const totalUsers = await User.countDocuments();
-	const totalProducts = await Product.countDocuments();
+	try {
+		const totalUsers = await User.countDocuments();
+		const totalProducts = await Product.countDocuments();
 
-	const salesData = await Order.aggregate([
-		{
-			$group: {
-				_id: null, // it groups all documents together,
-				totalSales: { $sum: 1 },
-				totalRevenue: { $sum: "$totalAmount" },
+		const salesData = await Order.aggregate([
+			{
+				$group: {
+					_id: null,
+					totalSales: { $sum: 1 },
+					totalRevenue: { $sum: "$totalAmount" },
+				},
 			},
-		},
-	]);
+		]);
 
-	const { totalSales, totalRevenue } = salesData[0] || 1{ totalSales: 0, totalRevenue: 0 };
+		// Handle case when there are no orders
+		const { totalSales = 0, totalRevenue = 0 } = salesData[0] || {};
 
-	return {
-		users: totalUsers,
-		products: totalProducts,
-		totalSales,
-		totalRevenue,
-	};
+		// Get current stock levels
+		const stockData = await Product.aggregate([
+			{
+				$group: {
+					_id: null,
+					totalStock: { $sum: "$stock" },
+				},
+			},
+		]);
+
+		const totalStock = stockData[0]?.totalStock || 0;
+
+		return {
+			users: totalUsers,
+			products: totalProducts,
+			totalSales,
+			totalRevenue,
+			totalStock,
+		};
+	} catch (error) {
+		console.error("Error in getAnalyticsData:", error);
+		throw error;
+	}
 };
 
 export const getDailySalesData = async (startDate, endDate) => {
 	try {
+		// Convert string dates to Date objects and handle timezone
+		const start = new Date(startDate);
+		const end = new Date(endDate);
+		
+		// Set time to start and end of day in UTC
+		start.setUTCHours(0, 0, 0, 0);
+		end.setUTCHours(23, 59, 59, 999);
+
+		console.log("Fetching sales data from", start.toISOString(), "to", end.toISOString());
+
 		const dailySalesData = await Order.aggregate([
 			{
 				$match: {
 					createdAt: {
-						$gte: startDate,
-						$lte: endDate,
+						$gte: start,
+						$lte: end,
 					},
 				},
 			},
 			{
 				$group: {
-					_id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+					_id: {
+						$dateToString: {
+							format: "%Y-%m-%d",
+							date: "$createdAt",
+						}
+					},
 					sales: { $sum: 1 },
 					revenue: { $sum: "$totalAmount" },
 				},
@@ -47,28 +81,26 @@ export const getDailySalesData = async (startDate, endDate) => {
 			{ $sort: { _id: 1 } },
 		]);
 
-		// example of dailySalesData
-		// [
-		// 	{
-		// 		_id: "2024-08-18",
-		// 		sales: 12,
-		// 		revenue: 1450.75
-		// 	},
-		// ]
+		console.log("Found sales data:", dailySalesData);
 
-		const dateArray = getDatesInRange(startDate, endDate);
-		// console.log(dateArray) // ['2024-08-18', '2024-08-19', ... ]
+		// Generate array of all dates in range
+		const dateArray = getDatesInRange(start, end);
+		console.log("Date array:", dateArray);
 
-		return dateArray.map((date) => {
+		// Map the data to include all dates, even those with no sales
+		const result = dateArray.map((date) => {
 			const foundData = dailySalesData.find((item) => item._id === date);
-
 			return {
 				date,
 				sales: foundData?.sales || 0,
 				revenue: foundData?.revenue || 0,
 			};
 		});
+
+		console.log("Final result:", result);
+		return result;
 	} catch (error) {
+		console.error("Error in getDailySalesData:", error);
 		throw error;
 	}
 };

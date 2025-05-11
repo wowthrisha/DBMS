@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
+
 const userSchema = new mongoose.Schema({
     name: { 
         type: String, 
@@ -34,21 +35,23 @@ const userSchema = new mongoose.Schema({
         default: "customer" 
     }
 }, { timestamps: true }); 
+
 //middleware before saving(hashing password)
-userSchema.pre("save",async function(next){
+userSchema.pre("save", async function(next) {
     if(!this.isModified("password")) return next();
     try {
-        const salt=await bcrypt.genSalt(10);
-        this.password=await bcrypt.hash(this.password,salt);
+        const salt = await bcrypt.genSalt(10);
+        this.password = await bcrypt.hash(this.password, salt);
         next();
-        
     } catch (error) {
-        next(error);//passes the error to Mongoose’s error handling mechanism.
+        next(error);
     }
-})          
+});
+
 //compare passwords                  
-userSchema.methods.comparePassword=async function(password){
-    return await bcrypt.compare(password,this.password);
-}        
-export const User = mongoose.model("User", userSchema);         
+userSchema.methods.comparePassword = async function(password) {
+    return await bcrypt.compare(password, this.password);
+};
+
+const User = mongoose.model("User", userSchema);
 export default User;

@@ -1,43 +1,46 @@
 import mongoose from "mongoose";
- const productSchema = new mongoose.Schema({
-    
-    name: { 
-        type: String, 
-        required: [true, "Name is required"] 
-    },
-    description: { 
-        type: String, 
-        required: [true, "Description is required"] 
-    },
-    price: { 
-        type: Number, 
-        min: 0,
-        required: true
-    },
-    image: { 
-        type: String, 
-        required: [true, "Image is required"] 
-    },
-    category: { 
-        type: String, 
-        required:true
-    },
-    isFeatured: { 
-        type: Boolean, 
-        default: false 
-    },
-    countInStock: { 
-        type: Number, 
-        min: 0, 
-        default: 0 
-    },
-    rating: { 
-        type: Number, 
-        min: 0, 
-        max: 5, 
-        default: 0 
-    }
-},{timestamps:true});
 
-export const Product = mongoose.model("Product", productSchema);
+const productSchema = new mongoose.Schema(
+    {
+        name: {
+            type: String,
+            required: [true, "Name is required"],
+            trim: true,
+        },
+        description: {
+            type: String,
+            required: [true, "Description is required"],
+        },
+        price: {
+            type: Number,
+            required: [true, "Price is required"],
+            min: [0, "Price cannot be negative"],
+        },
+        image: {
+            type: String,
+            required: [true, "Image is required"],
+        },
+        category: {
+            type: String,
+            required: [true, "Category is required"],
+            enum: ["jeans", "t-shirts", "shoes", "glasses", "jackets", "suits", "bags"],
+        },
+        countInStock: {
+            type: Number,
+            required: [true, "Count in stock is required"],
+            min: [0, "Count in stock cannot be negative"],
+            default: 0,
+        },
+        featured: {
+            type: Boolean,
+            default: false,
+        },
+    },
+    {
+        timestamps: true,
+    }
+);
+
+const Product = mongoose.model("Product", productSchema);
+
 export default Product;
