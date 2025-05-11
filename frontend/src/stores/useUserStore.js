@@ -3,6 +3,8 @@ import axios from "../lib/axios";
 import { toast } from "react-hot-toast";
 
 let refreshPromise = null;
+let lastAuthCheck = 0;
+const AUTH_CHECK_INTERVAL = 5000; // 5 seconds
 
 export const useUserStore = create((set, get) => ({
 	user: null,
@@ -12,9 +14,9 @@ export const useUserStore = create((set, get) => ({
 	signup: async ({ name, email, password, confirmPassword }) => {
 		set({ loading: true });
 		try {
-		if (password !== confirmPassword) {
+			if (password !== confirmPassword) {
 				throw new Error("Passwords do not match");
-		}
+			}
 			const res = await axios.post("/auth/signup", { name, email, password });
 			set({ user: res.data, loading: false });
 			toast.success("Account created successfully!");
@@ -48,13 +50,25 @@ export const useUserStore = create((set, get) => ({
 	},
 
 	checkAuth: async () => {
+		// Prevent too frequent auth checks
+		const now = Date.now();
+		if (now - lastAuthCheck < AUTH_CHECK_INTERVAL) {
+			return;
+		}
+		lastAuthCheck = now;
+
 		set({ checkingAuth: true });
 		try {
 			const response = await axios.get("/auth/profile");
 			set({ user: response.data, checkingAuth: false });
 		} catch (error) {
 			console.error("Auth check error:", error);
-			set({ checkingAuth: false, user: null });
+			// Only clear user if it's an authentication error
+			if (error.response?.status === 401) {
+				set({ checkingAuth: false, user: null });
+			} else {
+				set({ checkingAuth: false });
+			}
 		}
 	},
 

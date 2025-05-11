@@ -31,13 +31,13 @@ export const connectRedis = async () => {
 
         // Configure Redis client for Upstash
         redis = new Redis(redisUrl, {
-            maxRetriesPerRequest: 1,
+            maxRetriesPerRequest: 3,
             retryStrategy: (times) => {
-                if (times > 2) return null; // Stop retrying after 2 attempts
-                return Math.min(times * 100, 1000);
+                if (times > 3) return null; // Stop retrying after 3 attempts
+                return Math.min(times * 200, 2000);
             },
-            enableOfflineQueue: false,
-            connectTimeout: 5000,
+            enableOfflineQueue: true,
+            connectTimeout: 10000,
             tls: {
                 rejectUnauthorized: false // Required for Upstash Redis
             }
@@ -50,10 +50,7 @@ export const connectRedis = async () => {
         });
 
         redis.on('error', (err) => {
-            if (connectionAttempts === 1) {
-                console.error('Redis connection error:', err.message);
-                console.log('Continuing without Redis...');
-            }
+            console.error('Redis connection error:', err.message);
             redis = null;
         });
 
@@ -61,14 +58,27 @@ export const connectRedis = async () => {
             console.log('Redis client ready');
         });
 
-        await redis.ping();
+        // Wait for connection to be ready
+        await new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => {
+                reject(new Error('Redis connection timeout'));
+            }, 10000);
+
+            redis.once('ready', () => {
+                clearTimeout(timeout);
+                resolve();
+            });
+
+            redis.once('error', (err) => {
+                clearTimeout(timeout);
+                reject(err);
+            });
+        });
+
         console.log("Redis connected successfully");
         return redis;
     } catch (error) {
-        if (connectionAttempts === 1) {
-            console.error("Error connecting to Redis:", error.message);
-            console.log("Continuing without Redis...");
-        }
+        console.error("Error connecting to Redis:", error.message);
         redis = null;
         return null;
     } finally {
