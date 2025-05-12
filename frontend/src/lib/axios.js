@@ -6,6 +6,7 @@ const instance = axios.create({
 	headers: {
 		"Content-Type": "application/json",
 	},
+	timeout: 5000, // 5 second timeout
 });
 
 // To prevent race conditions during token refresh
@@ -30,6 +31,11 @@ instance.interceptors.response.use(
 
 		// Don't refresh for static resources or non-401 errors
 		if (error.response?.status !== 401 || originalRequest._retry || originalRequest.url.includes("/auth/refresh-token")) {
+			// Handle network errors gracefully
+			if (!error.response) {
+				console.error("Network error:", error.message);
+				return Promise.reject(error);
+			}
 			return Promise.reject(error);
 		}
 
@@ -53,7 +59,10 @@ instance.interceptors.response.use(
 		} catch (refreshError) {
 			processQueue(refreshError, null);
 			console.error("Refresh token failed:", refreshError);
-			window.location.href = "/login";
+			// Only redirect to login if it's an authentication error
+			if (refreshError.response?.status === 401) {
+				window.location.href = "/login";
+			}
 			return Promise.reject(refreshError);
 		} finally {
 			isRefreshing = false;

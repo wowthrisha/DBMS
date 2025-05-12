@@ -6,6 +6,7 @@ import LoginPage from "./pages/LoginPage";
 import AdminPage from "./pages/AdminPage";
 import CategoryPage from "./pages/CategoryPage";
 import OrdersPage from "./pages/OrdersPage";
+import SupermarketMapPage from "./pages/SupermarketMapPage";
 
 import Navbar from "./components/Navbar";
 import { Toaster } from "react-hot-toast";
@@ -56,6 +57,7 @@ function App() {
 					<Route path='/orders' element={user ? <OrdersPage /> : <Navigate to='/login' />} />
 					<Route path='/purchase-success' element={<PurchaseSuccessPage />} />
 					<Route path='/purchase-cancel' element={user ? <PurchaseCancelPage /> : <Navigate to='/login' />} />
+					<Route path='/supermarket-map' element={<SupermarketMapPage />} />
 				</Routes>
 			</div>
 			<Toaster />
