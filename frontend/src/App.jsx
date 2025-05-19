@@ -7,7 +7,6 @@ import AdminPage from "./pages/AdminPage";
 import CategoryPage from "./pages/CategoryPage";
 import OrdersPage from "./pages/OrdersPage";
 import SupermarketMapPage from "./pages/SupermarketMapPage";
-import GroceryCart from "./components/GroceryCart";
 
 import Navbar from "./components/Navbar";
 import { Toaster } from "react-hot-toast";
@@ -15,7 +14,6 @@ import { useUserStore } from "./stores/useUserStore";
 import { useEffect } from "react";
 import LoadingSpinner from "./components/LoadingSpinner";
 import CartPage from "./pages/CartPage";
-
 import { useCartStore } from "./stores/useCartStore";
 import PurchaseSuccessPage from "./pages/PurchaseSuccessPage";
 import PurchaseCancelPage from "./pages/PurchaseCancelPage";
@@ -46,23 +44,21 @@ function App() {
 
 			<div className='relative z-50 pt-20'>
 				<Navbar />
-				<Routes>				
-
-				<Route path='/' element={<HomePage />} /> 
-				<Route path='/signup' element={!user ? <SignUpPage /> : <Navigate to='/' />} />
-				<Route path='/login' element={!user ? <LoginPage /> : <Navigate to='/' />} />
-				<Route
+				<Routes>
+					<Route path='/' element={<HomePage />} />
+					<Route path='/signup' element={!user ? <SignUpPage /> : <Navigate to='/' />} />
+					<Route path='/login' element={!user ? <LoginPage /> : <Navigate to='/' />} />
+					<Route
 						path='/secret-dashboard'
 						element={user?.role === "admin" ? <AdminPage /> : <Navigate to='/login' />}
-				/>
-				<Route path='/category/:category' element={<CategoryPage />} />
-				<Route path='/cart' element={user ? <CartPage /> : <Navigate to='/login' />} />
-				<Route path='/orders' element={user ? <OrdersPage /> : <Navigate to='/login' />} />
-				<Route path='/purchase-success' element={<PurchaseSuccessPage />} />
-				<Route path='/purchase-cancel' element={user ? <PurchaseCancelPage /> : <Navigate to='/login' />} />
-				<Route path='/supermarket-map' element={<SupermarketMapPage />} />
-				<Route path='/grocery-billing' element={<GroceryCart/>} />
-			</Routes>
+					/>
+					<Route path='/category/:category' element={<CategoryPage />} />
+					<Route path='/cart' element={user ? <CartPage /> : <Navigate to='/login' />} />
+					<Route path='/orders' element={user ? <OrdersPage /> : <Navigate to='/login' />} />
+					<Route path='/purchase-success' element={<PurchaseSuccessPage />} />
+					<Route path='/purchase-cancel' element={user ? <PurchaseCancelPage /> : <Navigate to='/login' />} />
+					<Route path='/supermarket-map' element={<SupermarketMapPage />} />
+				</Routes>
 			</div>
 			<Toaster />
 		</div>
