@@ -32,6 +32,14 @@ const Navbar = () => {
 							<Map className='inline-block mr-1' size={20} />
 							<span className='hidden sm:inline'>Map</span>
 						</Link>
+						<Link
+	to={"/grocery-billing"}
+	className='text-gray-300 hover:text-emerald-400 transition duration-300 ease-in-out flex items-center'
+>
+	<span className='inline-block mr-1'>🧾</span>
+	<span className='hidden sm:inline'>Grocery Billing</span>
+</Link>
+
 						{user && (
 							<Link
 								to={"/cart"}
